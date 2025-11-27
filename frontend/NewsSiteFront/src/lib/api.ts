@@ -1,6 +1,17 @@
+// frontend/NewsSiteFront/src/lib/api.ts
 import { News, PagedNewsResponse, CreateNewsRequest, UpdateNewsRequest } from '@/types/news';
+import { getToken } from './auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7020/api';
+
+// Получить заголовки с токеном
+function getAuthHeaders(): HeadersInit {
+  const token = getToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+}
 
 // Функция для пагинированного получения новостей с поиском
 export async function getPagedNews(page: number = 1, pageSize: number = 10, search?: string): Promise<PagedNewsResponse> {
@@ -32,29 +43,25 @@ export async function getNewsById(id: string): Promise<News> {
   return response.json();
 }
 
-// Создать новость
+// Создать новость (требует авторизацию)
 export async function createNews(data: CreateNewsRequest): Promise<string> {
   const response = await fetch(`${API_BASE_URL}/News`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
   if (!response.ok) {
     const error = await response.text();
     throw new Error(error || 'Failed to create news');
   }
-  return response.json(); // Возвращает ID
+  return response.json();
 }
 
-// Обновить новость
+// Обновить новость (требует авторизацию)
 export async function updateNews(id: string, data: UpdateNewsRequest): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/News/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
   if (!response.ok) {
@@ -63,10 +70,11 @@ export async function updateNews(id: string, data: UpdateNewsRequest): Promise<v
   }
 }
 
-// Удалить новость
+// Удалить новость (требует авторизацию)
 export async function deleteNews(id: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/News/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error('Failed to delete news');
 }

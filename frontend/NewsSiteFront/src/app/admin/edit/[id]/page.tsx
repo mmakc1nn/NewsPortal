@@ -1,8 +1,10 @@
+// frontend/NewsSiteFront/src/app/admin/edit/[id]/page.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getNewsById, updateNews } from '@/lib/api';
+import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { News } from '@/types/news';
 
 export default function EditNewsPage() {
@@ -22,13 +24,16 @@ export default function EditNewsPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isAdmin = localStorage.getItem('isAdmin');
-      if (!isAdmin) {
-        router.push('/admin/login');
-        return;
-      }
+    if (!isAuthenticated()) {
+      router.push('/login');
+      return;
     }
+
+    if (!isAdmin()) {
+      router.push('/');
+      return;
+    }
+
     fetchNews();
   }, [id, router]);
 
@@ -166,7 +171,7 @@ export default function EditNewsPage() {
             />
           </div>
 
-          {/* Изображение - ОТДЕЛЬНЫЙ БЛОК */}
+          {/* Изображение */}
           <div>
             <label className="block text-gray-700 font-semibold mb-2">
               Изображение новости

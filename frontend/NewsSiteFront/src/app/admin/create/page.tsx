@@ -1,8 +1,10 @@
+// frontend/NewsSiteFront/src/app/admin/create/page.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createNews } from '@/lib/api';
+import { isAuthenticated, isAdmin } from '@/lib/auth';
 
 export default function CreateNewsPage() {
   const router = useRouter();
@@ -17,11 +19,14 @@ export default function CreateNewsPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isAdmin = localStorage.getItem('isAdmin');
-      if (!isAdmin) {
-        router.push('/admin/login');
-      }
+    if (!isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+
+    if (!isAdmin()) {
+      router.push('/');
+      return;
     }
   }, [router]);
 
@@ -119,7 +124,7 @@ export default function CreateNewsPage() {
             />
           </div>
 
-          {/* Изображение - ОТДЕЛЬНЫЙ БЛОК */}
+          {/* Изображение */}
           <div>
             <label className="block text-gray-700 font-semibold mb-2">
               Изображение новости

@@ -1,9 +1,11 @@
+// frontend/NewsSiteFront/src/app/admin/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getAllNews, deleteNews } from '@/lib/api';
+import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { News } from '@/types/news';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -15,15 +17,19 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isAdmin = localStorage.getItem('isAdmin');
-      if (!isAdmin) {
-        router.push('/admin/login');
-        return;
-      }
+    // Проверяем аутентификацию и права администратора
+    if (!isAuthenticated()) {
+      router.push('/login');
+      return;
     }
+
+    if (!isAdmin()) {
+      router.push('/');
+      return;
+    }
+
     fetchNews();
-  }, []);
+  }, [router]);
 
   const fetchNews = async () => {
     setLoading(true);
