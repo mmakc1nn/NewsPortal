@@ -1,7 +1,11 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NewsSite.Application.Services;
+using NewsSite.Core.Abstractions;
 using NewsSite.DataAccess;
 using NewsSite.DataAccess.Repository;
+using System.Text;
 
 
 
@@ -17,8 +21,35 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<NewsSiteDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString(nameof(NewsSiteDbContext)))
 );
-builder.Services.AddScoped<INewsService, NewsService>();
+
+
+// Repositories
 builder.Services.AddScoped<INewsRepository, NewsRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Services
+builder.Services.AddScoped<INewsService, NewsService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+
+// JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
 
 builder.Services.AddCors(options =>
 {

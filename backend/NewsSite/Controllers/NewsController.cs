@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NewsSite.Application.Services;
 using NewsSite.Contracts;
 using NewsSite.Core.Models;
@@ -82,6 +83,7 @@ namespace NewsSite.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> AddNews([FromBody] CreateNewsRequest request)
         {
             var (news, error) = Core.Models.News.Create(Guid.NewGuid(), request.Title, request.Content, request.Author, request.ImageBase64);
@@ -92,7 +94,9 @@ namespace NewsSite.Controllers
             await _newsService.AddNews(news);
             return Ok(news.Id);
         }
+
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> UpdateNews(Guid id, [FromBody] UpdateNewsRequest request)
         {
             // Получаем существующую новость
@@ -122,6 +126,7 @@ namespace NewsSite.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> DeleteNews(Guid id)
         {
             var existingNews = await _newsService.GetNewsById(id);

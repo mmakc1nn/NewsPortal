@@ -10,7 +10,15 @@ namespace NewsSite.DataAccess
         }
 
         public DbSet<Entities.NewsEntity> News { get; set; }
+        public DbSet<Entities.UserEntity> Users { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Entities.UserEntity>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+        }
     }
 }
